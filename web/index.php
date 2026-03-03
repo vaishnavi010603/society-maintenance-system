@@ -15,11 +15,22 @@ if (!isset($_SESSION["loggedin"])) {
 <style>
 body {
     font-family: Arial, sans-serif;
-    background: #f4f6f9;
+    background: linear-gradient(135deg, #f4f6f9, #e3f2fd);
     margin: 0;
     padding: 0;
 }
 
+/* Top Header */
+.header {
+    background: #1976d2;
+    color: white;
+    padding: 15px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* Main Container */
 .container {
     max-width: 500px;
     margin: 40px auto;
@@ -29,15 +40,17 @@ body {
 h2 {
     text-align: center;
     margin-bottom: 30px;
+    color: #333;
 }
 
 .card {
     background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    padding: 25px;
+    border-radius: 14px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
 }
 
+/* Buttons */
 a.button {
     display: block;
     text-decoration: none;
@@ -47,11 +60,12 @@ a.button {
     border-radius: 8px;
     font-size: 16px;
     font-weight: bold;
-    transition: 0.2s;
+    transition: all 0.2s ease;
 }
 
 a.button:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    opacity: 0.9;
 }
 
 .primary { background: #1976d2; color: white; }
@@ -61,19 +75,25 @@ a.button:hover {
 .dark    { background: #424242; color: white; }
 .danger  { background: #d32f2f; color: white; }
 
+/* Footer */
 .footer {
     text-align: center;
-    margin-top: 20px;
+    margin-top: 30px;
     font-size: 14px;
-    color: #777;
+    color: #666;
 }
 </style>
 </head>
 
 <body>
 
+<div class="header">
+    🏢 Society Management Dashboard
+</div>
+
 <div class="container">
-    <h2>🏢 Society Management System</h2>
+
+    <h2>Welcome, Chairman</h2>
 
     <div class="card">
         <a href="mark.php" class="button primary">💰 Mark Payment</a>
@@ -85,8 +105,9 @@ a.button:hover {
     </div>
 
     <div class="footer">
-        Internal Society Management System
+        © <?php echo date("Y"); ?> Internal Society Management System
     </div>
+
 </div>
 
 </body>
