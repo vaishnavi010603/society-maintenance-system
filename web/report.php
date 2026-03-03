@@ -4,48 +4,50 @@ if (!isset($_SESSION["loggedin"])) {
     header("Location: login.php");
     exit();
 }
-?>
 
-
-
-<?php
 $month = date("F-Y");
 
 $members_file = "data/members.csv";
 $payment_file = "data/payments/payments_" . $month . ".csv";
 $expense_file = "data/expenses.csv";
 
-/* ---- MEMBERS & EXPECTED ---- */
-$total_members = count(file($members_file)) - 1;
+/* -------- SAFE FILE HANDLING -------- */
+
+$members = file_exists($members_file) ? file($members_file) : [];
+$total_members = count($members) > 0 ? count($members) - 1 : 0;
 $expected = $total_members * 1000;
 
-/* ---- PAYMENTS ---- */
-$payments = file($payment_file);
+$payments = file_exists($payment_file) ? file($payment_file) : [];
 $collected_count = 0;
 $unpaid = [];
 
 foreach ($payments as $index => $line) {
+
     if ($index == 0) continue;
-    $data = explode(",", trim($line));
-    
-    if ($data[2] == "Yes") {
+
+    $data = str_getcsv(trim($line));
+
+    if (isset($data[2]) && $data[2] == "Yes") {
         $collected_count++;
-    } else {
+    } else if (isset($data[0])) {
         $unpaid[] = $data[0];
     }
 }
 
 $collected = $collected_count * 1000;
 
-/* ---- EXPENSES ---- */
-$expenses = file($expense_file);
+$expenses = file_exists($expense_file) ? file($expense_file) : [];
 $total_expense = 0;
 $expense_list = [];
 
-foreach ($expenses as $line) {
-    $data = explode(",", trim($line));
-    if (isset($data[2])) {
-        $total_expense += $data[2];
+foreach ($expenses as $index => $line) {
+
+    if ($index == 0) continue;
+
+    $data = str_getcsv(trim($line));
+
+    if (count($data) >= 3) {
+        $total_expense += (int)$data[2];
         $expense_list[] = $data;
     }
 }
@@ -57,28 +59,113 @@ $balance = $collected - $total_expense;
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monthly Report</title>
+
 <style>
-body { font-family: Arial; background:#f2f2f2; padding:10px;}
-.box { background:white; margin:10px 0; padding:15px; border-radius:8px;}
-h2 { text-align:center; }
-table { width:100%; border-collapse: collapse; background:white; }
-th, td { padding:8px; border:1px solid #ccc; text-align:center; }
-.unpaid { color:red; font-weight:bold; }
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f9;
+    margin: 0;
+    padding: 20px;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.card {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+.card strong {
+    font-size: 18px;
+}
+
+.unpaid-box {
+    background: #fff3f3;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+}
+
+.unpaid {
+    color: #d32f2f;
+    font-weight: bold;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+th, td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+
+th {
+    background: #1976d2;
+    color: white;
+}
+
+.back {
+    display: block;
+    margin-top: 20px;
+    text-align: center;
+}
 </style>
 </head>
+
 <body>
 
-<h2>Monthly Report - <?php echo $month; ?></h2>
+<h2>📊 Monthly Report - <?php echo $month; ?></h2>
 
-<div class="box">Expected Collection: ₹<?php echo $expected; ?></div>
-<div class="box">Collected: ₹<?php echo $collected; ?></div>
-<div class="box">Total Expenses: ₹<?php echo $total_expense; ?></div>
-<div class="box"><b>Balance: ₹<?php echo $balance; ?></b></div>
+<div class="summary">
+    <div class="card">
+        <div>Total Members</div>
+        <strong><?php echo $total_members; ?></strong>
+    </div>
 
-<h3>Unpaid Flats</h3>
-<div class="box unpaid">
+    <div class="card">
+        <div>Expected Collection</div>
+        <strong>₹<?php echo $expected; ?></strong>
+    </div>
+
+    <div class="card">
+        <div>Collected</div>
+        <strong>₹<?php echo $collected; ?></strong>
+    </div>
+
+    <div class="card">
+        <div>Total Expenses</div>
+        <strong>₹<?php echo $total_expense; ?></strong>
+    </div>
+
+    <div class="card">
+        <div>Balance</div>
+        <strong>₹<?php echo $balance; ?></strong>
+    </div>
+</div>
+
+<h3>❌ Unpaid Flats</h3>
+<div class="unpaid-box unpaid">
 <?php
-if (count($unpaid) > 0) {
+if (!empty($unpaid)) {
     echo implode(", ", $unpaid);
 } else {
     echo "All Flats Paid ✅";
@@ -86,25 +173,32 @@ if (count($unpaid) > 0) {
 ?>
 </div>
 
-<h3>Expense Details</h3>
+<h3>🧾 Expense Details</h3>
+
 <table>
 <tr>
     <th>Date</th>
     <th>Description</th>
     <th>Amount</th>
 </tr>
+
 <?php
-foreach ($expense_list as $exp) {
-    echo "<tr>
-            <td>{$exp[0]}</td>
-            <td>{$exp[1]}</td>
-            <td>₹{$exp[2]}</td>
-          </tr>";
+if (!empty($expense_list)) {
+    foreach ($expense_list as $exp) {
+        echo "<tr>
+                <td>{$exp[0]}</td>
+                <td>{$exp[1]}</td>
+                <td>₹{$exp[2]}</td>
+              </tr>";
+    }
+} else {
+    echo "<tr><td colspan='3'>No Expenses Recorded</td></tr>";
 }
 ?>
+
 </table>
 
-<br><a href="index.php">Back</a>
+<a href="index.php" class="back">⬅ Back to Dashboard</a>
 
 </body>
 </html>
