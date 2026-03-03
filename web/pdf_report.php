@@ -13,50 +13,103 @@ $payment_file = "data/payments/payments_" . $month . ".csv";
 $expense_file = "data/expenses.csv";
 $members_file = "data/members.csv";
 
-$total_members = count(file($members_file)) - 1;
+/* -------- Safe File Handling -------- */
+
+$members = file_exists($members_file) ? file($members_file) : [];
+$total_members = count($members) > 0 ? count($members) - 1 : 0;
 $expected = $total_members * 1000;
 
-$payments = file($payment_file);
+$payments = file_exists($payment_file) ? file($payment_file) : [];
 $collected_count = 0;
 $unpaid = [];
 
 foreach ($payments as $index => $line) {
+
     if ($index == 0) continue;
-    $data = explode(",", trim($line));
-    if ($data[2] == "Yes") {
+
+    $data = str_getcsv(trim($line));
+
+    if (isset($data[2]) && $data[2] == "Yes") {
         $collected_count++;
-    } else {
+    } else if (isset($data[0])) {
         $unpaid[] = $data[0];
     }
 }
 
 $collected = $collected_count * 1000;
 
-$expenses = file($expense_file);
+/* -------- Expense Calculation -------- */
+
+$expenses = file_exists($expense_file) ? file($expense_file) : [];
 $total_expense = 0;
 
-foreach ($expenses as $line) {
-    $data = explode(",", trim($line));
+foreach ($expenses as $index => $line) {
+
+    if ($index == 0) continue;
+
+    $data = str_getcsv(trim($line));
+
     if (isset($data[2])) {
-        $total_expense += $data[2];
+        $total_expense += (int)$data[2];
     }
 }
 
 $balance = $collected - $total_expense;
 
-/* ---- Create PDF ---- */
+/* -------- Create PDF -------- */
+
 $pdf = new TCPDF();
+$pdf->SetCreator(PDF_CREATOR);
+$pdf->SetAuthor("Society Management");
+$pdf->SetTitle("Monthly Report - " . $month);
 $pdf->AddPage();
-$pdf->SetFont('helvetica', '', 12);
 
-$html = "
-<h2>Society Monthly Report - $month</h2>
-<p><b>Expected Collection:</b> Rs. $expected</p>
-<p><b>Collected:</b> Rs. $collected</p>
-<p><b>Total Expenses:</b> Rs. $total_expense</p>
-<p><b>Balance:</b> Rs. $balance</p>
-";
+$html = "<h2>Society Monthly Report - $month</h2>";
 
-$pdf->writeHTML($html);
-$pdf->Output("Society_Report_$month.pdf", 'D');
-?>
+$html .= "<table border='1' cellpadding='5'>
+<tr><td><b>Total Members</b></td><td>$total_members</td></tr>
+<tr><td><b>Expected Collection</b></td><td>₹$expected</td></tr>
+<tr><td><b>Collected</b></td><td>₹$collected</td></tr>
+<tr><td><b>Total Expense</b></td><td>₹$total_expense</td></tr>
+<tr><td><b>Balance</b></td><td>₹$balance</td></tr>
+</table><br>";
+
+/* -------- Expense Details Table -------- */
+
+$html .= "<h3>Expense Details</h3>";
+$html .= "<table border='1' cellpadding='5'>
+<tr>
+<th>Date</th>
+<th>Description</th>
+<th>Amount</th>
+</tr>";
+
+foreach ($expenses as $index => $line) {
+
+    if ($index == 0) continue;
+
+    $data = str_getcsv(trim($line));
+
+    if (count($data) >= 3) {
+        $html .= "<tr>
+                    <td>{$data[0]}</td>
+                    <td>{$data[1]}</td>
+                    <td>₹{$data[2]}</td>
+                  </tr>";
+    }
+}
+
+$html .= "</table><br>";
+
+/* -------- Unpaid Flats -------- */
+
+$html .= "<h3>Unpaid Flats</h3>";
+if (!empty($unpaid)) {
+    $html .= implode(", ", $unpaid);
+} else {
+    $html .= "All payments received.";
+}
+
+$pdf->writeHTML($html, true, false, true, false, '');
+$pdf->Output("Society_Report_" . $month . ".pdf", "D");
+exit();
