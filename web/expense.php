@@ -4,46 +4,115 @@ if (!isset($_SESSION["loggedin"])) {
     header("Location: login.php");
     exit();
 }
-?>
 
-
-
-<?php
 $file = "data/expenses.csv";
 
+// Create file if not exists
+if (!file_exists($file)) {
+    file_put_contents($file, "Date,Description,Amount\n");
+}
+
+// ADD EXPENSE
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $desc = $_POST["desc"];
-    $amount = $_POST["amount"];
+    $desc = trim($_POST["desc"]);
+    $amount = trim($_POST["amount"]);
     $date = date("d-m-Y");
 
-    $line = $date . "," . $desc . "," . $amount . "\n";
-    file_put_contents($file, $line, FILE_APPEND);
-
-    echo "<p style='color:green;text-align:center;'>Expense Added Successfully</p>";
+    if ($desc != "" && $amount != "" && is_numeric($amount)) {
+        $line = $date . "," . $desc . "," . $amount . "\n";
+        file_put_contents($file, $line, FILE_APPEND);
+        $success = "Expense Added Successfully";
+    }
 }
+
+// DELETE EXPENSE
+if (isset($_GET["delete"])) {
+    $id = (int)$_GET["delete"];
+    $rows = file($file);
+
+    if ($id > 0 && $id < count($rows)) {
+        unset($rows[$id]);
+        file_put_contents($file, implode("", $rows));
+    }
+
+    header("Location: expense.php");
+    exit();
+}
+
+$rows = file_exists($file) ? file($file) : [];
 ?>
 
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-body { font-family: Arial; text-align:center; background:#f2f2f2;}
-input, button { padding:12px; width:80%; margin:10px; font-size:16px;}
-button { background:red; color:white; border:none; border-radius:5px;}
-</style>
+    <title>Add Expense</title>
 </head>
 <body>
 
-<h2>Add Expense</h2>
+<h2 style="text-align:center;">Add Expense</h2>
 
-<form method="post">
-<input type="text" name="desc" placeholder="Description" required><br>
-<input type="number" name="amount" placeholder="Amount" required><br>
-<button type="submit">Add Expense</button>
+<?php if (isset($success)) { ?>
+    <p style="color:green;text-align:center;"><?php echo $success; ?></p>
+<?php } ?>
+
+<form method="POST" style="text-align:center;">
+    Description:
+    <input type="text" name="desc" required>
+    <br><br>
+
+    Amount:
+    <input type="number" name="amount" min="1" required>
+    <br><br>
+
+    <button type="submit">Add Expense</button>
 </form>
 
-<br><a href="index.php">Back</a>
+<hr>
+
+<h3 style="text-align:center;">Expense List</h3>
+
+<table border="1" cellpadding="8" style="margin:auto;">
+<tr>
+    <th>Date</th>
+    <th>Description</th>
+    <th>Amount</th>
+    <th>Action</th>
+</tr>
+
+<?php
+$total = 0;
+
+foreach ($rows as $index => $row) {
+
+    if ($index == 0) continue; // skip header
+
+    $data = str_getcsv(trim($row));
+
+    if (count($data) >= 3) {
+
+        echo "<tr>";
+        echo "<td>{$data[0]}</td>";
+        echo "<td>{$data[1]}</td>";
+        echo "<td>₹{$data[2]}</td>";
+        echo "<td>
+                <a href='expense.php?delete=$index'
+                onclick=\"return confirm('Delete this expense?')\">
+                Delete
+                </a>
+              </td>";
+        echo "</tr>";
+
+        $total += (int)$data[2];
+    }
+}
+?>
+
+</table>
+
+<h3 style="text-align:center;">Total Expense: ₹<?php echo $total; ?></h3>
+
+<br>
+<p style="text-align:center;"><a href="index.php">Back to Dashboard</a></p>
 
 </body>
 </html>
