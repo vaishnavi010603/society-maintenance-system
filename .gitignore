@@ -1,0 +1,12 @@
+# Ignore payment files
+data/payments/*
+
+# Ignore generated reports
+*.pdf
+*.zip
+
+# Ignore container build artifacts (if any)
+*.log
+
+# Ignore OS junk
+.DS_Store
