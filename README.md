@@ -1,126 +1,94 @@
-Society Maintenance Management System
-Project Overview
 
-The Society Maintenance Management System is a containerized web application developed to manage monthly maintenance payments, track society expenses, generate financial reports, and create data backups for residential housing societies.
+# Society Maintenance Management System
 
-The application is designed to run on Linux (RHEL 9) and is deployed using Podman containers to ensure portability, consistency, and ease of deployment.
+## Project Overview
 
-This system helps society administrators maintain financial records in a structured and efficient manner.
+The **Society Maintenance Management System** is a containerized web application used to manage:
 
-Key Features
-Authentication
+* Monthly maintenance payments
+* Society expenses
+* Financial reports
+* Data backups
 
-Secure login for the chairman
+The system is deployed on **Linux (RHEL 9)** using **Podman containers**, ensuring portability and easy deployment.
 
-Session-based authentication
+---
 
-Prevents unauthorized access
+# Key Features
 
-Automatic Month Detection
+## Authentication
 
-Automatically detects the current month
+* Secure login for the chairman
+* Session-based authentication
+* Prevents unauthorized access
 
-Eliminates the need for manual updates every month
+## Automatic Month Detection
 
-Maintenance Payment Management
+* Automatically detects the current month
+* Eliminates the need for manual updates every month
 
-Record maintenance payments for residents
+## Maintenance Payment Management
 
-Track paid and unpaid entries
+* Record maintenance payments for residents
+* Track paid and unpaid entries
+* Maintain monthly payment records
 
-Maintain monthly payment records
+## Expense Tracking
 
-Expense Tracking
+* Add and manage society expenses
+* Store monthly expense details
 
-Add and manage society expenses
+## Financial Reporting
 
-Store monthly expense details
+* Generate dynamic monthly reports including:
 
-Financial Reporting
+  * Total maintenance collected
+  * Total expenses
+  * Remaining balance
 
-Generate dynamic monthly reports
+## PDF Report Generation
 
-Displays:
+* Download monthly financial reports as PDF files
+* Useful for documentation and record keeping
 
-Total maintenance collected
+## Data Backup
 
-Total expenses
+* Download a full backup of system data as a ZIP file
+* Backup includes:
 
-Remaining balance
+  * Payment records
+  * Expense records
+  * Resident data
 
-PDF Report Generation
+## Containerized Deployment
 
-Download monthly financial reports as PDF files
+* Fully containerized using **Podman**
+* Compatible with Docker environments
+* Simplifies application deployment
 
-Useful for record keeping and documentation
+---
 
-Email Reporting
+# Technology Stack
 
-Send reports via email using Gmail SMTP
+* **Backend:** PHP + Apache
+* **Frontend:** HTML, CSS
+* **Operating System:** RHEL 9
+* **Containerization:** Podman
+* **PDF Generation:** TCPDF
+* **Email Service:** PHPMailer with Gmail SMTP
+* **Data Storage:** CSV Files
 
-Enables digital sharing of monthly reports
+---
 
-Data Backup
+# Project Structure
 
-Download full system backup as a ZIP file
+```
+society-maintenance-system/
 
-Backup includes:
-
-Payment records
-
-Expense records
-
-Resident data
-
-Containerized Deployment
-
-Fully containerized using Podman
-
-Docker-compatible container environment
-
-Simplifies deployment across systems
-
-Technology Stack
-
-Backend: PHP with Apache Web Server
-
-Frontend: HTML and CSS
-
-Operating System: RHEL 9 Virtual Machine
-
-Containerization: Podman
-
-PDF Generation: TCPDF Library
-
-Email Service: PHPMailer with Gmail SMTP
-
-Data Storage: CSV Files
-
-System Architecture
-
-The application follows a simple web-based architecture:
-
-User (Chairman) accesses the application through a web browser
-
-Apache web server runs the PHP application
-
-Application processes payment and expense data
-
-Data is stored in CSV files
-
-Additional services:
-
-TCPDF for PDF generation
-
-PHPMailer with Gmail SMTP for sending email reports
-
-Project Structure
-society-maintenance-system
-
-containerfile
+Containerfile
 compose.yml
 
-public
+public/
   index.php
   login.php
   logout.php
@@ -132,91 +100,87 @@ public
   send_email.php
   backup.php
 
-data
+data/
   residents.csv
   payments.csv
   expenses.csv
 
-css
+css/
   style.css
 
-libs
-  tcpdf
-  phpmailer
+libs/
+  tcpdf/
+  phpmailer/
 
 README.md
-Installation Guide
-Step 1: Clone the Repository
+```
+
+---
+
+# Installation
+
+## Clone Repository
+
+```bash
 git clone https://github.com/yourusername/society-maintenance-system.git
 cd society-maintenance-system
-Step 2: Build the Container Image
+```
+
+## Build Container Image
+
+```bash
 podman build -t society-app .
-Step 3: Run the Container
+```
+
+## Run Container
+
+```bash
 podman run -d -p 8080:80 --name society-container society-app
-Step 4: Access the Application
+```
 
-Open a web browser and navigate to:
+## Access Application
 
+Open browser and visit:
+
+```
 http://localhost:8080
-Podman Compose Deployment (Optional)
+```
 
-If you prefer using Podman Compose:
+---
 
-podman-compose up -d
-Default Login Credentials
+# Default Login Credentials
 
-Username: chairman
+* **Username:** chairman
+* **Password:** admin123
 
-Password: admin123
+---
 
-These credentials can be modified in the login configuration file.
+# Application Workflow
 
-Application Workflow
+1. Chairman logs into the system
+2. Records maintenance payments
+3. Adds society expenses
+4. System generates monthly report
+5. Chairman can:
 
-Chairman logs into the system.
+   * Download PDF report
+   * Email the report
+   * Download full backup
 
-Maintenance payments are recorded for residents.
+---
 
-Society expenses are added.
+# Future Improvements
 
-The system automatically generates monthly financial reports.
+* Database integration (MySQL / PostgreSQL)
+* Role-based access (Secretary / Treasurer)
+* Resident login portal
+* Online payment gateway
+* Analytics dashboard
 
-The chairman can:
+---
 
-Download reports as PDF
+# Author
 
-Send reports via email
+Developed as a **Linux + Podman containerization project**.
 
-Download a full backup of system data
-
-Advantages of the System
-
-Lightweight system using CSV storage
-
-No database installation required
-
-Easy container deployment using Podman
-
-Portable across different environments
-
-Suitable for small and medium housing societies
-
-Future Enhancements
-
-Integration with MySQL or PostgreSQL database
-
-Role-based access control (Chairman, Secretary, Treasurer)
-
-Resident login portal
-
-Online payment gateway integration
-
-Dashboard analytics with charts and graphs
-
-Author
-
-Developed as a Linux and containerization project using Podman.
-
-License
-
-This project is intended for educational and internal society management purposes.
+---
